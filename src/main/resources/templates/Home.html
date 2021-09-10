@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/main_layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Crawler</title>
+</head>
+<body>
+    <div layout:fragment="content" class="container">
+        <script>
+            $(document).ready(function (){
+                $('#stockTable').DataTable();
+            });
+        </script>
+        <h2 class="text-center display-2">Market <span class="badge" th:text="${time} ? 'Open' : 'Closed'" th:classappend="${time} ? 'bg-success' : 'bg-danger'"></span></h2>
+        <hr>
+        <form class="row justify-content-center mb-3" th:action="@{/live-nepse-cond}" method="get" th:if="${time}">
+            <div class="col-auto"><strong>LTP :</strong></div>
+            <div class="col-auto">
+                <select class="form-select" name="condition">
+                    <option value=""></option>
+                    <option value="gt" th:selected="*{param.condition eq 'gt'}">Greater than</option>
+                    <option value="lt" th:selected="*{param.condition eq 'lt'}">Less than</option>
+                    <option value="eq" th:selected="*{param.condition eq 'eq'}">Equal to</option>
+                </select>
+            </div>
+            <div class="col-3">
+                <input type="number" name="ltpValue" class="form-control" th:value="*{param.ltpValue}"/>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Find</button>
+            </div>
+            <div class="col-12" style="display:none;">
+                <div class="callout callout-info">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pen" viewBox="0 0 16 16">
+                        <path d="m13.498.795.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001zm-.644.766a.5.5 0 0 0-.707 0L1.95 11.756l-.764 3.057 3.057-.764L14.44 3.854a.5.5 0 0 0 0-.708l-1.585-1.585z"/>
+                    </svg>
+                    <span>Input number will be included.</span>
+                </div>
+            </div>
+        </form>
+        <div class="row">
+            <div class="col">
+                <table class="table" id="stockTable">
+                    <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>LTP</th>
+                        <th>Point Change</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="stock : ${stocks}" th:class="${stock.porL == 'p'} ? 'table-success':(${stock.porL == 'l'} ? 'table-danger':'table-light')">
+                        <td th:text="${stock.symbol}"></td>
+                        <td th:text="${stock.ltp}"></td>
+                        <td th:text="${stock.pointChange}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

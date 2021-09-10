@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en"  xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{fragments/main_layout.html}">
+<head>
+    <meta charset="UTF-8">
+    <title>Market Depth</title>
+</head>
+<body>
+<div layout:fragment="content" class="container">
+    <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+    <script>
+        $(function (){
+            $('#closeToast').click(function () {
+                //$('#toast').removeClass('show');
+                $('#toast').fadeOut("slow");
+            });
+        });
+    </script>
+    <div th:if="${toast}" class="position-fixed bottom-0 end-0 p-3" style="z-index:11">
+        <div id="toast" class="toast align-items-center text-white border-0 bg-danger" th:classappend="${toast} ? 'show':'hide'" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    Please choose symbol.
+                </div>
+                <button type="button" id="closeToast" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    <h2 class="text-center display-2">Market Depth</h2>
+    <hr>
+    <form class="row justify-content-center" th:action="@{/market-depth-no}" th:object="${stocks}" method="GET">
+        <div class="col-5">
+            <div class="input-group">
+                <select class="form-select form-select-lg" id="marketDepth" name="symbol">
+                    <option th:each="stock : ${stocks}" th:text="${stock.symbol}" th:value="${stock.stockNo}"></option>
+                </select>
+                <button type="submit" class="btn btn-primary btn-lg" onclick="pushMsg();">Go</button>
+            </div>
+        </div>
+    </form>
+    <hr>
+    <div class="row" th:unless="${depthIndex == null}" data-masonry='{"percentPosition": true}'>
+        <div th:class="${marketStatus} ? 'col-6':'col-12'">
+            <div class="row">
+                <div class="col-12">
+                    <h5 th:text="${depthIndex.name}">Name</h5>
+                </div>
+                <div class="col-3">
+                    <span class="h3 mb-0 fw-bold" th:text="${depthIndex.livePrice}">Live Price</span>
+                </div>
+                <div class="col-5 d-flex align-items-center">
+                    <div th:if="${depthIndex.indicatorColor == 'red'}" class="text-danger">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                        <span th:text="' '+${depthIndex.indicator}">Indicator</span>
+                    </div>
+                    <div th:if="${depthIndex.indicatorColor == 'green'}" class="text-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="green" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/>
+                        </svg>
+                        <span th:text="' '+${depthIndex.indicator}">Indicator</span>
+                    </div>
+                    <div th:if="${depthIndex.indicatorColor == 'blue'}" class="text-primary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="blue" class="bi bi-chevron-expand" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M3.646 9.146a.5.5 0 0 1 .708 0L8 12.793l3.646-3.647a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 0-.708zm0-2.292a.5.5 0 0 0 .708 0L8 3.207l3.646 3.647a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 0 0 0 .708z"/>
+                        </svg>
+                        <span th:text="' '+${depthIndex.indicator}">Indicator</span>
+                    </div>
+                </div>
+            </div>
+            <hr>
+            <div class="row">
+                <div class="col-6">
+                    <label>Prev. Close</label><br>
+                    <h5 th:text="${depthIndex.prClose}"></h5>
+                </div>
+                <div class="col-6 align-items-center">
+                    <label>Open</label><br>
+                    <h5 th:text="${depthIndex.open}"></h5>
+                </div>
+                <div class="col-6 align-items-center">
+                    <label>High</label><br>
+                    <h5 th:text="${depthIndex.high}"></h5>
+                </div>
+                <div class="col-6">
+                    <label>Low</label><br>
+                    <h5 th:text="${depthIndex.low}"></h5>
+                </div>
+            </div>
+            <hr>
+        </div>
+        <div class="col-6 border-start" th:if="${marketStatus == true}">
+            <div class="row">
+                <div class="col-12">
+                    <table class="table table-primary">
+                        <thead>
+                        <tr>
+                            <th>Buy Orders</th>
+                            <th>Buy Quantity</th>
+                            <th>Buy Price</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="buy : ${buyer}">
+                            <td th:text="${buy.buyOrder}"></td>
+                            <td th:text="${buy.buyQuantity}"></td>
+                            <td th:text="${buy.buyPrice}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-12">
+                    <table class="table table-danger">
+                        <thead>
+                        <tr>
+                            <th>Sell Orders</th>
+                            <th>Sell Quantity</th>
+                            <th>Sell Price</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="sell : ${seller}">
+                            <td th:text="${sell.sellOrder}"></td>
+                            <td th:text="${sell.sellQuantity}"></td>
+                            <td th:text="${sell.sellPrice}"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div th:remove="tag" th:utext="${chart}"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
